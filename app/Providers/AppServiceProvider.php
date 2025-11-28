@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Providers;
+use Filament\Facades\Filament;
+
 
 use Illuminate\Support\ServiceProvider;
 
@@ -17,8 +19,13 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        //
-    }
+public function boot(): void
+{
+    Filament::serving(function () {
+        if (auth()->check() && !auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+    });
+}
+
 }

@@ -12,28 +12,30 @@ class SubCategoryController extends Controller
         return SubCategory::with('category')->get();
     }
 
+    public function show(SubCategory $subCategory)
+    {
+        return $subCategory->load('category', 'products');
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'name' => 'required',
-            'slug' => 'required|unique:sub_categories',
+            'name'        => 'required',
+            'slug'        => 'required|unique:sub_categories',
+            'description' => 'nullable',
         ]);
 
         return SubCategory::create($data);
-    }
-
-    public function show(SubCategory $subCategory)
-    {
-        return $subCategory->load('products');
     }
 
     public function update(Request $request, SubCategory $subCategory)
     {
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'name' => 'required',
-            'slug' => 'required|unique:sub_categories,slug,' . $subCategory->id,
+            'name'        => 'required',
+            'slug'        => 'required|unique:sub_categories,slug,' . $subCategory->id,
+            'description' => 'nullable',
         ]);
 
         $subCategory->update($data);
@@ -45,5 +47,11 @@ class SubCategoryController extends Controller
     {
         $subCategory->delete();
         return response()->json(['message' => 'Deleted']);
+    }
+
+    // Méthode pour récupérer les sous-catégories d'une catégorie
+    public function fromCategory($categoryId)
+    {
+        return SubCategory::where('category_id', $categoryId)->get();
     }
 }

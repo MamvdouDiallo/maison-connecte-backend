@@ -12,16 +12,27 @@ class Service extends Model
 {
         use HasFactory; // <- Important !
 
-    protected $fillable = [
-    'name',
-    'description',
-    'price',
-    'available_online',
-];
+
 
 
      public function quotes()
     {
         return $this->hasMany(Quote::class);
     }
+
+
+    protected $fillable = [
+    'name', 'description', 'price', 'available_online', 'image'
+];
+
+protected $appends = ['image_url'];
+
+public function getImageUrlAttribute()
+{
+    if (!$this->image) {
+        return null;
+    }
+    return asset('storage/' . $this->image);
+}
+
 }

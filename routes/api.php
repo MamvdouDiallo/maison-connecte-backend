@@ -3,11 +3,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-
 use App\Http\Controllers\{
     CategoryController,
     SubCategoryController,
@@ -21,6 +16,13 @@ use App\Http\Controllers\{
     OrderController,
     UserController
 };
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES
+|--------------------------------------------------------------------------
+| Toutes les routes sont publiques
+*/
 
 Route::prefix('public')->group(function () {
 
@@ -46,31 +48,50 @@ Route::prefix('public')->group(function () {
 
     // Quote
     Route::post('/quote', [QuoteController::class, 'store']);
+
+    // Services (doublon mais public aussi)
+    Route::apiResource('services', ServiceController::class);
 });
 
 
+Route::prefix('public')->group(function () {
 
-Route::middleware(['auth:sanctum'])->group(function () {
-
-    // Profile
-    Route::get('/profile', [UserController::class, 'profile']);
-    Route::put('/profile', [UserController::class, 'update']);
-
-    // Orders
-    Route::get('/orders', [OrderController::class, 'userOrders']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::post('/orders', [OrderController::class, 'store']);
-
-    // Support tickets
-    Route::get('/support', [SupportTicketController::class, 'userTickets']);
-    Route::post('/support', [SupportTicketController::class, 'store']);
-    Route::get('/support/{id}', [SupportTicketController::class, 'show']);
-
+    Route::get('/accessories', [AccessoryController::class, 'index']);
+    Route::get('/accessories/{accessory}', [AccessoryController::class, 'show']);
+    Route::post('/accessories', [AccessoryController::class, 'store']); // si tu veux public
 });
 
 
+/*
+|--------------------------------------------------------------------------
+| PUBLIC Profile, Orders, Support
+|--------------------------------------------------------------------------
+| Toutes ces routes étaient protégées → retiré auth:sanctum
+*/
 
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::get('/profile', [UserController::class, 'profile']);
+Route::put('/profile', [UserController::class, 'update']);
+
+Route::get('/orders', [OrderController::class, 'userOrders']);
+Route::get('/orders/{id}', [OrderController::class, 'show']);
+Route::post('/orders', [OrderController::class, 'store']);
+
+Route::get('/support', [SupportTicketController::class, 'userTickets']);
+Route::post('/support', [SupportTicketController::class, 'store']);
+Route::get('/support/{id}', [SupportTicketController::class, 'show']);
+
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ADMIN ROUTES
+|--------------------------------------------------------------------------
+| Plus de role:admin → toutes publiques
+*/
+
+Route::prefix('admin')->group(function () {
+
+    Route::apiResource('accessories', AccessoryController::class);
+
 
     // Users
     Route::apiResource('users', UserController::class);
@@ -88,9 +109,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::apiResource('packs', PackController::class);
     Route::post('packs/{id}/products', [PackProductController::class, 'attach']);
     Route::delete('packs/{id}/products/{productId}', [PackProductController::class, 'detach']);
-
-    // Services
-    Route::apiResource('services', ServiceController::class);
 
     // Quotes
     Route::get('quotes', [QuoteController::class, 'index']);
