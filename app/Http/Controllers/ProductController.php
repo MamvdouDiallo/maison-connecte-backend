@@ -95,4 +95,20 @@ class ProductController extends Controller
 
         return response()->json(['message' => 'Deleted']);
     }
+
+    public function getByCategory($categoryId)
+{
+    return Product::with('category', 'subCategory', 'images')
+        ->where('category_id', $categoryId)
+        ->get();
+}
+
+public function getBySubCategory($subCategoryId)
+{
+    return Product::with('category', 'subCategory', 'images')
+        ->where('subcategory_id', $subCategoryId)
+        ->get();
+}
+
+
 }

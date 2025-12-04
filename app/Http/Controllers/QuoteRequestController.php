@@ -52,16 +52,16 @@ class QuoteRequestController extends Controller
             'email' => 'required|email|max:255',
 
             // Files
-            'files.*' => 'file|max:4096'
+            // 'files.*' => 'file|max:4096'
         ]);
 
         // Store files
-        $uploadedFiles = [];
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $file) {
-                $uploadedFiles[] = $file->store('quote_requests', 'public');
-            }
-        }
+        // $uploadedFiles = [];
+        // if ($request->hasFile('files')) {
+        //     foreach ($request->file('files') as $file) {
+        //         $uploadedFiles[] = $file->store('quote_requests', 'public');
+        //     }
+        // }
 
         // Create in database
         $quote = QuoteRequest::create([
@@ -93,8 +93,11 @@ class QuoteRequestController extends Controller
             'email' => $validated['email'],
 
             // Files
-            'files' => $uploadedFiles
+            // 'files' => $uploadedFiles
         ]);
+
+        Mail::to(env('ADMIN_EMAIL'))->send(new QuoteRequestNotification($quote));
+
 
         return response()->json([
             'success' => true,

@@ -19,70 +19,64 @@ use App\Http\Controllers\{
     AccessoryController
 };
 
-
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
 |--------------------------------------------------------------------------
-| Toutes les routes sont publiques
+| Toutes les routes de listing (index) + affichage (show) sont publiques.
+| Les créations (store) publiques uniquement si nécessaire.
 */
 
 Route::prefix('public')->group(function () {
 
-    // Categories & Subcategories
+    /* ----------- Categories ----------- */
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::get('/categories/{id}/subcategories', [SubCategoryController::class, 'fromCategory']);
 
-    // Products
+    /* ----------- Subcategories ----------- */
+    Route::get('/subcategories', [SubCategoryController::class, 'index']);
+    Route::get('/subcategories/{id}', [SubCategoryController::class, 'show']);
+
+    /* ----------- Products ----------- */
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
 
-    // Packs
+
+
+    // 📌 Filtres publics par catégorie / sous-catégorie
+Route::get('/products/category/{categoryId}', [ProductController::class, 'getByCategory']);
+Route::get('/products/subcategory/{subCategoryId}', [ProductController::class, 'getBySubCategory']);
+
+    /* ----------- Packs ----------- */
     Route::get('/packs', [PackController::class, 'index']);
     Route::get('/packs/{id}', [PackController::class, 'show']);
 
-    // Services
+    /* ----------- Services ----------- */
     Route::get('/services', [ServiceController::class, 'index']);
     Route::get('/services/{id}', [ServiceController::class, 'show']);
 
-    // Contact
+    /* ----------- Accessories ----------- */
+    Route::get('/accessories', [AccessoryController::class, 'index']);
+    Route::get('/accessories/{id}', [AccessoryController::class, 'show']);
+
+    /* ----------- Contact ----------- */
     Route::post('/contact', [ContactController::class, 'store']);
 
-
-    // Quote
+    /* ----------- Quote ----------- */
     Route::post('/quote', [QuoteController::class, 'store']);
 
+    /* ----------- Quote Requests ----------- */
+    Route::post('/quote-request', [QuoteRequestController::class, 'store']);
+    Route::get('/quote-requests', [QuoteRequestController::class, 'index']);
+    Route::get('/quote-requests/{id}', [QuoteRequestController::class, 'show']);
 
-
-
-   //   Qutote Requests
-   Route::post('/quote-request', [QuoteRequestController::class, 'store']);
-
-Route::get('/quote-requests', [QuoteRequestController::class, 'index']);
-Route::get('/quote-requests/{id}', [QuoteRequestController::class, 'show']);
-Route::put('/quote-requests/{id}', [QuoteRequestController::class, 'update']);
-Route::delete('/quote-requests/{id}', [QuoteRequestController::class, 'destroy']);
-
-
-    // Services (doublon mais public aussi)
-    Route::apiResource('services', ServiceController::class);
 });
-
-
-Route::prefix('public')->group(function () {
-
-    Route::get('/accessories', [AccessoryController::class, 'index']);
-    Route::get('/accessories/{accessory}', [AccessoryController::class, 'show']);
-    Route::post('/accessories', [AccessoryController::class, 'store']); // si tu veux public
-});
-
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC Profile, Orders, Support
+| PUBLIC Profile, Orders & Support (plus de sanctum)
 |--------------------------------------------------------------------------
-| Toutes ces routes étaient protégées → retiré auth:sanctum
 */
 
 Route::get('/profile', [UserController::class, 'profile']);
@@ -96,46 +90,44 @@ Route::get('/support', [SupportTicketController::class, 'userTickets']);
 Route::post('/support', [SupportTicketController::class, 'store']);
 Route::get('/support/{id}', [SupportTicketController::class, 'show']);
 
-
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ADMIN ROUTES
+| ADMIN ROUTES (toujours publiques selon ta demande)
 |--------------------------------------------------------------------------
-| Plus de role:admin → toutes publiques
 */
 
 Route::prefix('admin')->group(function () {
 
+    /* ----------- Accessories ----------- */
     Route::apiResource('accessories', AccessoryController::class);
 
-
-    // Users
+    /* ----------- Users ----------- */
     Route::apiResource('users', UserController::class);
 
-    // Categories
+    /* ----------- Categories ----------- */
     Route::apiResource('categories', CategoryController::class);
 
-    // Subcategories
+    /* ----------- Subcategories ----------- */
     Route::apiResource('subcategories', SubCategoryController::class);
 
-    // Products
+    /* ----------- Products ----------- */
     Route::apiResource('products', ProductController::class);
 
-    // Packs
+    /* ----------- Packs ----------- */
     Route::apiResource('packs', PackController::class);
     Route::post('packs/{id}/products', [PackProductController::class, 'attach']);
     Route::delete('packs/{id}/products/{productId}', [PackProductController::class, 'detach']);
 
-    // Quotes
+    /* ----------- Quotes ----------- */
     Route::get('quotes', [QuoteController::class, 'index']);
     Route::put('quotes/{id}', [QuoteController::class, 'update']);
     Route::delete('quotes/{id}', [QuoteController::class, 'destroy']);
 
-    // Support Tickets
+    /* ----------- Support ----------- */
     Route::get('support', [SupportTicketController::class, 'index']);
     Route::put('support/{id}', [SupportTicketController::class, 'update']);
 
-    // Orders
+    /* ----------- Orders ----------- */
     Route::get('orders', [OrderController::class, 'index']);
     Route::put('orders/{id}', [OrderController::class, 'update']);
 });
