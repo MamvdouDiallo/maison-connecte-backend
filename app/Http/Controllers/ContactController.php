@@ -19,8 +19,14 @@ class ContactController extends Controller
             'email'   => 'required|email',
             'message' => 'required',
         ]);
-
-        return Contact::create($data);
+        Contact::create($validated);
+        // Envoyer le mail
+        Mail::to(config('mail.admin_email'))->send(
+            new ContactMail($validated['name'], $validated['email'], $validated['message'])
+        );
+        return response()->json([
+            'message' => 'Votre message a été envoyé avec succès !'
+        ]);
     }
 
     public function show(Contact $contact)

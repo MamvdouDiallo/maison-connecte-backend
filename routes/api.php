@@ -14,8 +14,11 @@ use App\Http\Controllers\{
     SupportTicketController,
     ContactController,
     OrderController,
-    UserController
+    UserController,
+    QuoteRequestController,
+    AccessoryController
 };
+
 
 /*
 |--------------------------------------------------------------------------
@@ -46,8 +49,21 @@ Route::prefix('public')->group(function () {
     // Contact
     Route::post('/contact', [ContactController::class, 'store']);
 
+
     // Quote
     Route::post('/quote', [QuoteController::class, 'store']);
+
+
+
+
+   //   Qutote Requests
+   Route::post('/quote-request', [QuoteRequestController::class, 'store']);
+
+Route::get('/quote-requests', [QuoteRequestController::class, 'index']);
+Route::get('/quote-requests/{id}', [QuoteRequestController::class, 'show']);
+Route::put('/quote-requests/{id}', [QuoteRequestController::class, 'update']);
+Route::delete('/quote-requests/{id}', [QuoteRequestController::class, 'destroy']);
+
 
     // Services (doublon mais public aussi)
     Route::apiResource('services', ServiceController::class);
