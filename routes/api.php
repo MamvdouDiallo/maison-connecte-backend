@@ -16,8 +16,10 @@ use App\Http\Controllers\{
     OrderController,
     UserController,
     QuoteRequestController,
-    AccessoryController
+    AccessoryController,
+    BlogPostController
 };
+
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +72,10 @@ Route::get('/products/subcategory/{subCategoryId}', [ProductController::class, '
     Route::post('/quote-request', [QuoteRequestController::class, 'store']);
     Route::get('/quote-requests', [QuoteRequestController::class, 'index']);
     Route::get('/quote-requests/{id}', [QuoteRequestController::class, 'show']);
+
+
+Route::get('/posts', [BlogPostController::class, 'index']);
+Route::get('/posts/{post}', [BlogPostController::class, 'show']);
 
 });
 
