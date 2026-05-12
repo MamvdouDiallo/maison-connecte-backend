@@ -98,91 +98,97 @@ class AdminPanelProvider extends PanelProvider
                 box-shadow: 4px 0 24px rgba(0,0,0,0.15) !important;
             }
 
+            /* Tous les éléments texte dans la sidebar en blanc par défaut */
+            .fi-sidebar * { color: rgba(242,242,242,0.75); }
+
             /* Header / logo */
             .fi-sidebar-header {
                 background-color: var(--mc-dark) !important;
-                border-bottom: 1px solid rgba(0,151,167,0.2) !important;
+                border-bottom: 1px solid rgba(0,151,167,0.25) !important;
                 padding: 1.1rem 1rem !important;
             }
             .fi-logo, .fi-logo:hover { text-decoration: none !important; }
             .fi-brand-name,
             .fi-logo > span,
-            .fi-sidebar-header a span {
+            .fi-sidebar-header a,
+            .fi-sidebar-header span {
                 color: #ffffff !important;
                 font-weight: 800 !important;
                 font-size: 1.05rem !important;
                 letter-spacing: -0.02em !important;
             }
 
-            /* Barre de séparation entre groupes */
-            .fi-sidebar-group + .fi-sidebar-group {
-                border-top: 1px solid rgba(255,255,255,0.06) !important;
-                margin-top: 4px !important;
-                padding-top: 4px !important;
-            }
-
-            /* Label de groupe */
+            /* Label de groupe — fi-nav-group-label (Filament 3) */
+            .fi-nav-group-label,
             .fi-sidebar-group-label {
                 color: var(--mc-secondary) !important;
-                font-size: 0.58rem !important;
+                font-size: 0.6rem !important;
                 font-weight: 700 !important;
-                letter-spacing: 0.16em !important;
+                letter-spacing: 0.15em !important;
                 text-transform: uppercase !important;
-                padding: 0.5rem 0.75rem 0.2rem !important;
-                opacity: 0.9 !important;
+                opacity: 1 !important;
+                padding: 0.6rem 0.75rem 0.2rem !important;
             }
 
-            /* Bouton nav item */
+            /* Bouton nav item — fi-nav-item-button (Filament 3) */
+            .fi-nav-item-button,
+            .fi-sidebar-item-button,
             .fi-sidebar-item-btn {
-                color: rgba(242,242,242,0.65) !important;
+                color: rgba(242,242,242,0.7) !important;
                 border-radius: 8px !important;
                 font-size: 0.875rem !important;
                 font-weight: 500 !important;
-                transition: all 0.15s ease !important;
-                margin: 1px 0 !important;
+                transition: background 0.15s ease, color 0.15s ease !important;
             }
+            .fi-nav-item-button svg,
+            .fi-sidebar-item-button svg,
             .fi-sidebar-item-btn svg {
-                color: inherit !important;
-                opacity: 0.85 !important;
+                color: rgba(242,242,242,0.6) !important;
             }
+            .fi-nav-item-button:hover,
+            .fi-sidebar-item-button:hover,
             .fi-sidebar-item-btn:hover {
-                background-color: rgba(0,151,167,0.16) !important;
+                background-color: rgba(0,151,167,0.18) !important;
+                color: #ffffff !important;
+            }
+            .fi-nav-item-button:hover svg,
+            .fi-sidebar-item-button:hover svg,
+            .fi-sidebar-item-btn:hover svg {
                 color: var(--mc-secondary) !important;
             }
-            .fi-sidebar-item-btn:hover svg { opacity: 1 !important; }
 
             /* Item actif */
-            .fi-sidebar-item-btn[aria-current],
-            .fi-sidebar-item-btn[aria-current="page"],
+            .fi-nav-item-active .fi-nav-item-button,
+            .fi-nav-item-button[aria-current="page"],
+            .fi-nav-item-button.fi-active,
             .fi-sidebar-item-active .fi-sidebar-item-btn,
-            .fi-sidebar-item-btn.fi-active {
-                background: linear-gradient(135deg, var(--mc-primary), #00b5c8) !important;
+            .fi-sidebar-item-btn[aria-current="page"] {
+                background: linear-gradient(135deg, var(--mc-primary) 0%, #00b5c8 100%) !important;
                 color: #ffffff !important;
                 font-weight: 600 !important;
-                box-shadow: 0 4px 12px rgba(0,151,167,0.35) !important;
+                box-shadow: 0 4px 14px rgba(0,151,167,0.4) !important;
             }
-            .fi-sidebar-item-btn[aria-current] svg,
-            .fi-sidebar-item-btn[aria-current="page"] svg,
-            .fi-sidebar-item-active .fi-sidebar-item-btn svg {
+            .fi-nav-item-active .fi-nav-item-button svg,
+            .fi-nav-item-button[aria-current="page"] svg,
+            .fi-sidebar-item-active .fi-sidebar-item-btn svg,
+            .fi-sidebar-item-btn[aria-current="page"] svg {
                 color: #ffffff !important;
-                opacity: 1 !important;
             }
 
-            /* Footer sidebar (user panel) */
+            /* Footer sidebar */
             .fi-sidebar-footer {
                 background-color: #111111 !important;
                 border-top: 1px solid rgba(0,151,167,0.18) !important;
             }
             .fi-sidebar-footer .fi-avatar { border: 2px solid var(--mc-primary) !important; }
-            .fi-sidebar-footer [class*="text-gray"],
-            .fi-sidebar-footer .fi-user-name { color: rgba(242,242,242,0.8) !important; }
-            .fi-sidebar-footer .fi-user-job-title { color: rgba(242,242,242,0.45) !important; }
+            .fi-sidebar-footer span,
+            .fi-sidebar-footer p { color: rgba(242,242,242,0.75) !important; }
 
             /* Scrollbar sidebar */
             .fi-sidebar::-webkit-scrollbar { width: 3px; }
             .fi-sidebar::-webkit-scrollbar-track { background: transparent; }
             .fi-sidebar::-webkit-scrollbar-thumb {
-                background: rgba(0,151,167,0.3);
+                background: rgba(0,151,167,0.35);
                 border-radius: 2px;
             }
 
