@@ -1,34 +1,40 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactMail;
-
+use App\Mail\ContactClientConfirmation;
 
 class ContactController extends Controller
 {
     public function index()
     {
-        return Contact::with('user')->get();
+        return Contact::all();
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name'    => 'required',
-            'email'   => 'required|email',
-            'message' => 'required',
+        $validated = $request->validate([
+            'name'    => 'required|string|max:255',
+            'email'   => 'required|email|max:255',
+            'message' => 'required|string',
         ]);
-        Contact::create($validated);
-        // Envoyer le mail
-        Mail::to(config('mail.admin_email'))->send(
-            new ContactMail($validated['name'], $validated['email'], $validated['message'])
-        );
-        return response()->json([
-            'message' => 'Votre message a été envoyé avec succès !'
-        ]);
+
+        $contact = Contact::create($validated);
+
+        $adminAddress = config('mail.admin_address');
+        if ($adminAddress) {
+            Mail::to($adminAddress)->send(
+                new ContactMail($contact->name, $contact->email, $contact->message)
+            );
+        }
+
+        Mail::to($contact->email)->send(new ContactClientConfirmation($contact));
+
+        return response()->json(['success' => true]);
     }
 
     public function show(Contact $contact)

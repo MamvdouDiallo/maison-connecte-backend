@@ -14,8 +14,10 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {;
+    {
+        // AdminSeeder doit toujours être en premier — crée le super admin de la plateforme
         $this->call([
+            AdminSeeder::class,
             UserSeeder::class,
             CategorySeeder::class,
             SubCategorySeeder::class,

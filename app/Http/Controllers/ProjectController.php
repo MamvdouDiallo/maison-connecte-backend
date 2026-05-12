@@ -2,208 +2,137 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Project;
-use App\Models\ProjectType;
-use App\Http\Resources\ProjectResource;
+use App\Models\ProjectService;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    /**
-     * Liste de tous les projets
-     */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Project::with(['projectType', 'images', 'tags', 'services']);
-
-        // Filtrer par type de projet
-        if ($request->has('type')) {
-            $query->byType($request->type);
-        }
-
-        // Filtrer par année
-        if ($request->has('year')) {
-            $query->where('year', $request->year);
-        }
-
-        // Filtrer par localisation
-        if ($request->has('location')) {
-            $query->where('location', 'LIKE', '%' . $request->location . '%');
-        }
-
-        // Filtrer seulement les actifs
-        if ($request->boolean('active_only', true)) {
-            $query->active();
-        }
-
-        // Trier
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        
-        if ($sortBy === 'order') {
-            $query->orderBy('order', $sortOrder);
-        } else {
-            $query->orderBy($sortBy, $sortOrder);
-        }
-
-        // Pagination optionnelle
-        if ($request->has('per_page')) {
-            $perPage = min($request->per_page, 50); // Max 50 par page
-            $projects = $query->paginate($perPage);
-            return ProjectResource::collection($projects);
-        }
-
-        $projects = $query->get();
-        return ProjectResource::collection($projects);
-    }
-
-    /**
-     * Afficher un projet spécifique
-     */
-    public function show($id)
-    {
-        $project = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->findOrFail($id);
-
-        return new ProjectResource($project);
-    }
-
-    /**
-     * Projets par type de projet
-     */
-    public function byType($typeSlug)
-    {
-        $projectType = ProjectType::where('slug', $typeSlug)->firstOrFail();
-
         $projects = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->where('project_type_id', $projectType->id)
-            ->active()
+            ->where('is_active', true)
             ->orderBy('order')
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('year')
             ->get();
 
-        return ProjectResource::collection($projects);
+        return response()->json($projects);
     }
 
-    /**
-     * Projets récents/mis en avant
-     */
-    public function featured(Request $request)
+    public function show(Project $project)
     {
-        $limit = $request->get('limit', 6);
-
-        $projects = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->active()
-            ->orderBy('order')
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get();
-
-        return ProjectResource::collection($projects);
+        return response()->json(
+            $project->load(['projectType', 'images', 'tags', 'services'])
+        );
     }
 
-    /**
-     * Projets par service
-     */
-    public function byService($service)
+    public function store(Request $request)
     {
-        $validServices = ['security', 'automation', 'solar', 'finishing'];
-        
-        if (!in_array($service, $validServices)) {
-            return response()->json(['message' => 'Service invalide'], 400);
+        $data = $request->validate([
+            'project_type_id'  => 'required|exists:project_types,id',
+            'title'            => 'required|array',
+            'title.fr'         => 'required|string',
+            'title.en'         => 'nullable|string',
+            'description'      => 'nullable|array',
+            'location'         => 'nullable|string',
+            'year'             => 'nullable|string|max:4',
+            'thumbnail'        => 'nullable|string',
+            'client'           => 'nullable|string',
+            'duration'         => 'nullable|string',
+            'is_active'        => 'boolean',
+            'order'            => 'integer',
+            'images'           => 'nullable|array',
+            'images.*.image_path' => 'required|string',
+            'images.*.order'   => 'integer',
+            'tags'             => 'nullable|array',
+            'tags.*'           => 'string',
+            'services'         => 'nullable|array',
+            'services.*'       => 'in:security,automation,solar,finishing',
+        ]);
+
+        $project = Project::create($data);
+
+        if (!empty($data['images'])) {
+            $project->images()->createMany($data['images']);
         }
 
-        $projects = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->whereHas('services', function($query) use ($service) {
-                $query->where('service', $service);
-            })
-            ->active()
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return ProjectResource::collection($projects);
-    }
-
-    /**
-     * Projets par tag
-     */
-    public function byTag($tag)
-    {
-        $projects = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->whereHas('tags', function($query) use ($tag) {
-                $query->where('tag', 'LIKE', '%' . $tag . '%');
-            })
-            ->active()
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return ProjectResource::collection($projects);
-    }
-
-    /**
-     * Projets par année
-     */
-    public function byYear($year)
-    {
-        $projects = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->where('year', $year)
-            ->active()
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return ProjectResource::collection($projects);
-    }
-
-    /**
-     * Projets par localisation
-     */
-    public function byLocation(Request $request)
-    {
-        $location = $request->get('location');
-
-        if (!$location) {
-            return response()->json(['message' => 'Localisation requise'], 400);
+        if (!empty($data['tags'])) {
+            $project->tags()->createMany(
+                array_map(fn($t) => ['tag' => $t], $data['tags'])
+            );
         }
 
-        $projects = Project::with(['projectType', 'images', 'tags', 'services'])
-            ->where('location', 'LIKE', '%' . $location . '%')
-            ->active()
-            ->orderBy('created_at', 'desc')
-            ->get();
+        if (!empty($data['services'])) {
+            $project->services()->createMany(
+                array_map(fn($s) => ['service' => $s], $data['services'])
+            );
+        }
 
-        return ProjectResource::collection($projects);
+        return response()->json(
+            $project->load(['projectType', 'images', 'tags', 'services']),
+            201
+        );
     }
 
-    /**
-     * Statistiques des projets
-     */
-    public function statistics()
+    public function update(Request $request, Project $project)
     {
-        $stats = [
-            'total_projects' => Project::active()->count(),
-            'by_type' => ProjectType::withCount(['projects' => function($q) {
-                $q->where('is_active', true);
-            }])->get()->map(function($type) {
-                return [
-                    'type' => $type->name,
-                    'slug' => $type->slug,
-                    'count' => $type->projects_count,
-                ];
-            }),
-            'by_year' => Project::active()
-                ->selectRaw('year, COUNT(*) as count')
-                ->groupBy('year')
-                ->orderBy('year', 'desc')
-                ->get(),
-            'by_service' => [
-                'security' => Project::active()->whereHas('services', fn($q) => $q->where('service', 'security'))->count(),
-                'automation' => Project::active()->whereHas('services', fn($q) => $q->where('service', 'automation'))->count(),
-                'solar' => Project::active()->whereHas('services', fn($q) => $q->where('service', 'solar'))->count(),
-                'finishing' => Project::active()->whereHas('services', fn($q) => $q->where('service', 'finishing'))->count(),
-            ],
-        ];
+        $data = $request->validate([
+            'project_type_id'     => 'sometimes|exists:project_types,id',
+            'title'               => 'sometimes|array',
+            'title.fr'            => 'sometimes|string',
+            'title.en'            => 'nullable|string',
+            'description'         => 'nullable|array',
+            'location'            => 'nullable|string',
+            'year'                => 'nullable|string|max:4',
+            'thumbnail'           => 'nullable|string',
+            'client'              => 'nullable|string',
+            'duration'            => 'nullable|string',
+            'is_active'           => 'boolean',
+            'order'               => 'integer',
+            'images'              => 'nullable|array',
+            'images.*.image_path' => 'required|string',
+            'images.*.order'      => 'integer',
+            'tags'                => 'nullable|array',
+            'tags.*'              => 'string',
+            'services'            => 'nullable|array',
+            'services.*'          => 'in:security,automation,solar,finishing',
+        ]);
 
-        return response()->json($stats);
+        $project->update($data);
+
+        if (array_key_exists('images', $data)) {
+            $project->images()->delete();
+            if (!empty($data['images'])) {
+                $project->images()->createMany($data['images']);
+            }
+        }
+
+        if (array_key_exists('tags', $data)) {
+            $project->tags()->delete();
+            if (!empty($data['tags'])) {
+                $project->tags()->createMany(
+                    array_map(fn($t) => ['tag' => $t], $data['tags'])
+                );
+            }
+        }
+
+        if (array_key_exists('services', $data)) {
+            $project->services()->delete();
+            if (!empty($data['services'])) {
+                $project->services()->createMany(
+                    array_map(fn($s) => ['service' => $s], $data['services'])
+                );
+            }
+        }
+
+        return response()->json(
+            $project->load(['projectType', 'images', 'tags', 'services'])
+        );
+    }
+
+    public function destroy(Project $project)
+    {
+        $project->delete();
+        return response()->json(null, 204);
     }
 }

@@ -12,8 +12,6 @@ class EditProjectType extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return [Actions\DeleteAction::make()];
     }
 }

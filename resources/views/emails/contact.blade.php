@@ -7,7 +7,7 @@
 **Message**:  
 {{ $messageContent }}
 
-@component('mail::button', ['url' => 'mailto:'.config('mail.admin_email')])
+@component('mail::button', ['url' => 'mailto:'.$email])
 Répondre à {{ $name }}
 @endcomponent
 

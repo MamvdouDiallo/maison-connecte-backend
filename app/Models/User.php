@@ -10,9 +10,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 
-
 class User extends Authenticatable implements FilamentUser
-
 {
 
 
@@ -20,10 +18,6 @@ class User extends Authenticatable implements FilamentUser
     use HasFactory, Notifiable,HasRoles;
 
 
- public function canAccessPanel(Panel $panel): bool
-    {
-        return true; // ✅ Autoriser tout le monde
-    }
 
     /**
      * The attributes that are mass assignable.
@@ -34,6 +28,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -59,7 +54,12 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-     public function orders()
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->role === 'admin' || $this->hasRole('admin');
+    }
+
+    public function orders()
     {
         return $this->hasMany(Order::class);
     }

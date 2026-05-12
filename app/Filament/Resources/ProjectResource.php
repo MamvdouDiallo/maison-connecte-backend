@@ -4,200 +4,145 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Models\Project;
-use App\Models\ProjectType;
+use App\Models\ProjectService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class ProjectResource extends Resource
 {
     protected static ?string $model = Project::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
-
-    protected static ?string $navigationLabel = 'Projets';
-
+    protected static ?string $navigationIcon  = 'heroicon-o-briefcase';
     protected static ?string $navigationGroup = 'Portfolio';
-
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = 'Projets réalisés';
+    protected static ?int    $navigationSort  = 3;
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Informations du Projet')
+        return $form->schema([
+
+            Forms\Components\Section::make('Informations principales')->schema([
+                Forms\Components\Grid::make(2)->schema([
+                    Forms\Components\TextInput::make('title.fr')
+                        ->label('Titre (FR)')
+                        ->required(),
+
+                    Forms\Components\TextInput::make('title.en')
+                        ->label('Titre (EN)'),
+                ]),
+
+                Forms\Components\Grid::make(2)->schema([
+                    Forms\Components\RichEditor::make('description.fr')
+                        ->label('Description (FR)')
+                        ->toolbarButtons(['bold', 'italic', 'bulletList', 'orderedList']),
+
+                    Forms\Components\RichEditor::make('description.en')
+                        ->label('Description (EN)')
+                        ->toolbarButtons(['bold', 'italic', 'bulletList', 'orderedList']),
+                ]),
+            ]),
+
+            Forms\Components\Section::make('Détails')->schema([
+                Forms\Components\Grid::make(3)->schema([
+                    Forms\Components\Select::make('project_type_id')
+                        ->label('Type de projet')
+                        ->relationship('projectType', 'id')
+                        ->getOptionLabelFromRecordUsing(fn($record) => $record->name['fr'] ?? '')
+                        ->preload()
+                        ->required(),
+
+                    Forms\Components\TextInput::make('location')
+                        ->label('Localisation'),
+
+                    Forms\Components\TextInput::make('year')
+                        ->label('Année')
+                        ->maxLength(4)
+                        ->placeholder('2024'),
+                ]),
+
+                Forms\Components\Grid::make(2)->schema([
+                    Forms\Components\TextInput::make('client')
+                        ->label('Client'),
+
+                    Forms\Components\TextInput::make('duration')
+                        ->label('Durée')
+                        ->placeholder('3 mois'),
+                ]),
+            ]),
+
+            Forms\Components\Section::make('Médias')->schema([
+                Forms\Components\FileUpload::make('thumbnail')
+                    ->label('Image principale')
+                    ->image()
+                    ->directory('projects/thumbnails'),
+
+                Forms\Components\Repeater::make('images')
+                    ->label('Galerie')
+                    ->relationship()
                     ->schema([
-                        Forms\Components\Select::make('project_type_id')
-                            ->label('Type de Projet')
-                            ->relationship('projectType', 'slug')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->name['fr'] ?? $record->slug)
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('slug')
-                                    ->required()
-                                    ->unique()
-                                    ->alphaNum(),
-                                Forms\Components\TextInput::make('name.fr')
-                                    ->label('Nom (FR)')
-                                    ->required(),
-                            ])
-                            ->columnSpanFull(),
-
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('title.fr')
-                                    ->label('Titre (Français)')
-                                    ->required()
-                                    ->maxLength(255),
-
-                                Forms\Components\TextInput::make('title.en')
-                                    ->label('Titre (Anglais)')
-                                    ->required()
-                                    ->maxLength(255),
-                            ]),
-
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\RichEditor::make('description.fr')
-                                    ->label('Description (Français)')
-                                    ->required()
-                                    ->columnSpanFull(),
-
-                                Forms\Components\RichEditor::make('description.en')
-                                    ->label('Description (Anglais)')
-                                    ->required()
-                                    ->columnSpanFull(),
-                            ]),
-                    ])
-                    ->columns(2),
-
-                Forms\Components\Section::make('Détails')
-                    ->schema([
-                        Forms\Components\Grid::make(3)
-                            ->schema([
-                                Forms\Components\TextInput::make('location')
-                                    ->label('Localisation')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->placeholder('Ex: Almadies, Dakar'),
-
-                                Forms\Components\TextInput::make('year')
-                                    ->label('Année')
-                                    ->required()
-                                    ->numeric()
-                                    ->maxLength(4)
-                                    ->placeholder('2024'),
-
-                                Forms\Components\TextInput::make('duration')
-                                    ->label('Durée')
-                                    ->maxLength(255)
-                                    ->placeholder('Ex: 6 mois'),
-                            ]),
-
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('client')
-                                    ->label('Client')
-                                    ->maxLength(255)
-                                    ->placeholder('Ex: Privé'),
-
-                                Forms\Components\TextInput::make('order')
-                                    ->label('Ordre d\'affichage')
-                                    ->numeric()
-                                    ->default(0),
-                            ]),
-
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Projet actif')
-                            ->default(true)
-                            ->helperText('Afficher ce projet dans le portfolio'),
-                    ])
-                    ->columns(1),
-
-                Forms\Components\Section::make('Images')
-                    ->schema([
-                        Forms\Components\FileUpload::make('thumbnail')
-                            ->label('Image Principale')
+                        Forms\Components\FileUpload::make('image_path')
+                            ->label('Image')
                             ->image()
-                            ->directory('projects/thumbnails')
-                            ->required()
-                            ->maxSize(2048)
-                            ->imageEditor()
-                            ->columnSpanFull(),
+                            ->directory('projects/gallery')
+                            ->required(),
 
-                        Forms\Components\Repeater::make('images')
-                            ->label('Galerie d\'Images')
-                            ->relationship('images')
-                            ->schema([
-                                Forms\Components\FileUpload::make('image_path')
-                                    ->label('Image')
-                                    ->image()
-                                    ->directory('projects/images')
-                                    ->required()
-                                    ->maxSize(2048)
-                                    ->imageEditor(),
-
-                                Forms\Components\TextInput::make('order')
-                                    ->label('Ordre')
-                                    ->numeric()
-                                    ->default(0),
-                            ])
-                            ->reorderable()
-                            ->collapsible()
-                            ->itemLabel(fn (array $state): ?string => $state['order'] ?? null)
-                            ->columnSpanFull()
-                            ->defaultItems(0)
-                            ->addActionLabel('Ajouter une image'),
+                        Forms\Components\TextInput::make('order')
+                            ->label('Ordre')
+                            ->numeric()
+                            ->default(0),
                     ])
-                    ->columns(1),
+                    ->addActionLabel('Ajouter une image')
+                    ->collapsible(),
+            ]),
 
-                Forms\Components\Section::make('Tags & Services')
+            Forms\Components\Section::make('Tags & Services')->schema([
+                Forms\Components\Repeater::make('tags')
+                    ->label('Tags')
+                    ->relationship()
                     ->schema([
-                        Forms\Components\Repeater::make('tags')
-                            ->label('Tags')
-                            ->relationship('tags')
-                            ->schema([
-                                Forms\Components\TextInput::make('tag')
-                                    ->label('Tag')
-                                    ->required()
-                                    ->maxLength(100)
-                                    ->placeholder('Ex: Sécurité, Domotique')
-                                    ->columnSpanFull(),
-                            ])
-                            ->reorderable(false)
-                            ->collapsible()
-                            ->columnSpanFull()
-                            ->defaultItems(0)
-                            ->addActionLabel('Ajouter un tag'),
-
-                        Forms\Components\Repeater::make('services')
-                            ->label('Services')
-                            ->relationship('services')
-                            ->schema([
-                                Forms\Components\Select::make('service')
-                                    ->label('Service')
-                                    ->options([
-                                        'security' => 'Sécurité',
-                                        'automation' => 'Domotique',
-                                        'solar' => 'Solaire',
-                                        'finishing' => 'Finitions',
-                                    ])
-                                    ->required()
-                                    ->columnSpanFull(),
-                            ])
-                            ->reorderable(false)
-                            ->collapsible()
-                            ->columnSpanFull()
-                            ->defaultItems(0)
-                            ->addActionLabel('Ajouter un service'),
+                        Forms\Components\TextInput::make('tag')
+                            ->label('Tag')
+                            ->required(),
                     ])
-                    ->columns(1),
-            ]);
+                    ->addActionLabel('Ajouter un tag')
+                    ->columns(2)
+                    ->collapsible(),
+
+                Forms\Components\Repeater::make('services')
+                    ->label('Services réalisés')
+                    ->relationship()
+                    ->schema([
+                        Forms\Components\Select::make('service')
+                            ->label('Service')
+                            ->options([
+                                'security'   => 'Sécurité',
+                                'automation' => 'Domotique',
+                                'solar'      => 'Solaire',
+                                'finishing'  => 'Finitions',
+                            ])
+                            ->required(),
+                    ])
+                    ->addActionLabel('Ajouter un service')
+                    ->columns(2)
+                    ->collapsible(),
+            ]),
+
+            Forms\Components\Section::make('Publication')->schema([
+                Forms\Components\Grid::make(2)->schema([
+                    Forms\Components\Toggle::make('is_active')
+                        ->label('Visible sur le site')
+                        ->default(true),
+
+                    Forms\Components\TextInput::make('order')
+                        ->label("Ordre d'affichage")
+                        ->numeric()
+                        ->default(0),
+                ]),
+            ]),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -205,138 +150,55 @@ class ProjectResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('thumbnail')
-                    ->label('Image')
-                    ->circular()
-                    ->width(60)
-                    ->height(60),
+                    ->label('Photo')
+                    ->height(50),
 
                 Tables\Columns\TextColumn::make('title.fr')
                     ->label('Titre')
-                    ->searchable()
                     ->sortable()
-                    ->weight('bold')
-                    ->wrap(),
+                    ->searchable(),
 
-                Tables\Columns\TextColumn::make('projectType.name.fr')
+                Tables\Columns\TextColumn::make('projectType.name')
                     ->label('Type')
-                    ->badge()
-                    ->color(fn (Project $record): string => $record->projectType->color ?? 'gray')
-                    ->sortable(),
+                    ->formatStateUsing(fn($state) => is_array($state) ? ($state['fr'] ?? '') : $state),
 
                 Tables\Columns\TextColumn::make('location')
-                    ->label('Localisation')
-                    ->icon('heroicon-o-map-pin')
-                    ->searchable()
-                    ->toggleable(),
+                    ->label('Lieu'),
 
                 Tables\Columns\TextColumn::make('year')
                     ->label('Année')
-                    ->badge()
-                    ->color('info')
                     ->sortable(),
-
-                Tables\Columns\TextColumn::make('client')
-                    ->label('Client')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('duration')
-                    ->label('Durée')
-                    ->toggleable(),
-
-                Tables\Columns\TextColumn::make('images_count')
-                    ->label('Images')
-                    ->counts('images')
-                    ->badge()
-                    ->color('success'),
-
-                Tables\Columns\TextColumn::make('tags_count')
-                    ->label('Tags')
-                    ->counts('tags')
-                    ->badge()
-                    ->color('warning'),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Actif')
-                    ->boolean()
-                    ->sortable(),
+                    ->label('Visible')
+                    ->boolean(),
 
                 Tables\Columns\TextColumn::make('order')
                     ->label('Ordre')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Créé le')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Modifié le')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
+            ->defaultSort('order')
             ->filters([
                 Tables\Filters\SelectFilter::make('project_type_id')
-                    ->label('Type de Projet')
-                    ->relationship('projectType', 'slug')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->name['fr'] ?? $record->slug)
-                    ->preload(),
-
-                Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Statut')
-                    ->placeholder('Tous')
-                    ->trueLabel('Actifs')
-                    ->falseLabel('Inactifs'),
-
-                Tables\Filters\Filter::make('year')
-                    ->form([
-                        Forms\Components\TextInput::make('year')
-                            ->label('Année')
-                            ->numeric(),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['year'],
-                            fn (Builder $query, $year): Builder => $query->where('year', $year),
-                        );
-                    }),
+                    ->label('Type de projet')
+                    ->relationship('projectType', 'id')
+                    ->getOptionLabelFromRecordUsing(fn($record) => $record->name['fr'] ?? ''),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
-            ->defaultSort('created_at', 'desc')
-            ->reorderable('order');
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
+                Tables\Actions\DeleteBulkAction::make(),
+            ]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProjects::route('/'),
+            'index'  => Pages\ListProjects::route('/'),
             'create' => Pages\CreateProject::route('/create'),
-            'view' => Pages\ViewProject::route('/{record}'),
-            'edit' => Pages\EditProject::route('/{record}/edit'),
+            'edit'   => Pages\EditProject::route('/{record}/edit'),
         ];
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getModel()::count();
     }
 }

@@ -2,64 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\ProjectType;
-use App\Http\Resources\ProjectTypeResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProjectTypeController extends Controller
 {
-    /**
-     * Liste de tous les types de projet
-     */
-    public function index(Request $request)
+    public function index()
     {
-        $query = ProjectType::query();
-
-        // Filtrer seulement les actifs si demandé
-        if ($request->boolean('active_only')) {
-            $query->active();
-        }
-
-        // Inclure le compteur de projets si demandé
-        if ($request->boolean('include_count')) {
-            $query->withCount('activeProjects');
-        }
-
-        $projectTypes = $query->orderBy('order')->get();
-
-        return ProjectTypeResource::collection($projectTypes);
+        $types = ProjectType::where('is_active', true)
+            ->orderBy('order')
+            ->get();
+        return response()->json($types);
     }
 
-    /**
-     * Afficher un type de projet spécifique
-     */
-    public function show($slug)
+    public function store(Request $request)
     {
-        $projectType = ProjectType::where('slug', $slug)
-            ->with('activeProjects')
-            ->firstOrFail();
+        $data = $request->validate([
+            'name'        => 'required|array',
+            'name.fr'     => 'required|string',
+            'name.en'     => 'nullable|string',
+            'description' => 'nullable|array',
+            'slug'        => 'nullable|string|unique:project_types,slug',
+            'icon'        => 'nullable|string',
+            'color'       => 'nullable|string',
+            'is_active'   => 'boolean',
+            'order'       => 'integer',
+        ]);
 
-        return new ProjectTypeResource($projectType);
+        $data['slug'] = $data['slug'] ?? Str::slug($data['name']['fr']);
+
+        return response()->json(ProjectType::create($data), 201);
     }
 
-    /**
-     * Obtenir tous les types de projet avec leurs projets
-     */
-    public function withProjects(Request $request)
+    public function show(ProjectType $projectType)
     {
-        $query = ProjectType::with(['projects' => function($q) {
-            $q->where('is_active', true)
-              ->orderBy('order')
-              ->orderBy('created_at', 'desc');
-        }]);
+        return response()->json($projectType);
+    }
 
-        if ($request->boolean('active_only')) {
-            $query->active();
-        }
+    public function update(Request $request, ProjectType $projectType)
+    {
+        $data = $request->validate([
+            'name'        => 'sometimes|array',
+            'name.fr'     => 'sometimes|string',
+            'name.en'     => 'nullable|string',
+            'description' => 'nullable|array',
+            'slug'        => 'nullable|string|unique:project_types,slug,' . $projectType->id,
+            'icon'        => 'nullable|string',
+            'color'       => 'nullable|string',
+            'is_active'   => 'boolean',
+            'order'       => 'integer',
+        ]);
 
-        $projectTypes = $query->orderBy('order')->get();
+        $projectType->update($data);
+        return response()->json($projectType);
+    }
 
-        return ProjectTypeResource::collection($projectTypes);
+    public function destroy(ProjectType $projectType)
+    {
+        $projectType->delete();
+        return response()->json(null, 204);
     }
 }

@@ -9,12 +9,11 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Hash;
-
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static ?string $navigationLabel = 'Utilisateurs';
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationGroup = 'Administration';
     protected static ?int $navigationSort = 1;
@@ -36,8 +35,8 @@ class UserResource extends Resource
                     ->password()
                     ->required(fn($context) => $context === 'create')
                     ->minLength(6)
-                    ->dehydrateStateUsing(fn($state) => $state ? Hash::make($state) : null)
-                    ->label(fn ($context) => $context === 'edit' ? 'Nouveau mot de passe' : 'Mot de passe'),
+                    ->dehydrated(fn($state) => filled($state))
+                    ->label(fn ($context) => $context === 'edit' ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe'),
 
                 Forms\Components\Select::make('roles')
                     ->multiple()

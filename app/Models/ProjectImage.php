@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProjectImage extends Model
 {
-    use HasFactory;
+    protected $fillable = ['project_id', 'image_path', 'order'];
 
-    protected $fillable = [
-        'project_id',
-        'image_path',
-        'order'
-    ];
+    // Le frontend attend "url" — on expose image_path sous ce nom
+    protected $appends = ['url'];
+
+    public function getUrlAttribute(): string
+    {
+        return $this->image_path ?? '';
+    }
 
     public function project()
     {

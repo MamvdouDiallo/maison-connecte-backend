@@ -18,12 +18,13 @@ use App\Http\Controllers\{
     QuoteRequestController,
     AccessoryController,
     BlogPostController,
+    CommandeController,
+    DevisController,
+    FinitionController,
+    ClientController,
     ProjectTypeController,
-    ProjectController,
-    ClientController
+    ProjectController
 };
-
-
 
 
 /*
@@ -70,8 +71,14 @@ Route::get('/products/subcategory/{subCategoryId}', [ProductController::class, '
     /* ----------- Contact ----------- */
     Route::post('/contact', [ContactController::class, 'store']);
 
+    /* ----------- Devis ----------- */
+    Route::post('/devis', [DevisController::class, 'store']);
+
     /* ----------- Quote ----------- */
     Route::post('/quote', [QuoteController::class, 'store']);
+
+    /* ----------- Commande panier ----------- */
+    Route::post('/commande', [CommandeController::class, 'store']);
 
     /* ----------- Quote Requests ----------- */
     Route::post('/quote-request', [QuoteRequestController::class, 'store']);
@@ -82,26 +89,19 @@ Route::get('/products/subcategory/{subCategoryId}', [ProductController::class, '
 Route::get('/posts', [BlogPostController::class, 'index']);
 Route::get('/posts/{post}', [BlogPostController::class, 'show']);
 
+    /* ----------- Finitions ----------- */
+    Route::get('/finitions', [FinitionController::class, 'index']);
+    Route::get('/finitions/{finition}', [FinitionController::class, 'show']);
 
-    // Project Types
-    Route::get('/project-types', [ProjectTypeController::class, 'index']);
-    Route::get('/project-types/{projectType:slug}', [ProjectTypeController::class, 'show']);
-
-
-        // Project Types
-    Route::get('/projects', [ProjectController::class, 'index']);
-    Route::get('/project/{project:slug}', [ProjectController::class, 'show']);
-
-
-        // Clients
+    /* ----------- Portfolio : Partenaires ----------- */
     Route::get('/clients', [ClientController::class, 'index']);
-    Route::get('/clients/featured', [ClientController::class, 'featured']);
-    Route::get('/clients/logos', [ClientController::class, 'logos']);
-    Route::get('/clients/statistics', [ClientController::class, 'statistics']);
-    Route::get('/clients/industries', [ClientController::class, 'industries']);
-    Route::get('/clients/search', [ClientController::class, 'search']);
-    Route::get('/clients/by-industry/{industry}', [ClientController::class, 'byIndustry']);
-    Route::get('/clients/{slug}', [ClientController::class, 'show']);
+
+    /* ----------- Portfolio : Types de projets ----------- */
+    Route::get('/project-types', [ProjectTypeController::class, 'index']);
+
+    /* ----------- Portfolio : Projets réalisés ----------- */
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::get('/projects/{project}', [ProjectController::class, 'show']);
 
 });
 
@@ -162,4 +162,18 @@ Route::prefix('admin')->group(function () {
     /* ----------- Orders ----------- */
     Route::get('orders', [OrderController::class, 'index']);
     Route::put('orders/{id}', [OrderController::class, 'update']);
+
+    /* ----------- Finitions ----------- */
+    Route::post('finitions', [FinitionController::class, 'store']);
+    Route::post('finitions/{finition}', [FinitionController::class, 'update']);
+    Route::delete('finitions/{finition}', [FinitionController::class, 'destroy']);
+
+    /* ----------- Portfolio : Partenaires ----------- */
+    Route::apiResource('clients', ClientController::class)->except(['index']);
+
+    /* ----------- Portfolio : Types de projets ----------- */
+    Route::apiResource('project-types', ProjectTypeController::class)->except(['index']);
+
+    /* ----------- Portfolio : Projets réalisés ----------- */
+    Route::apiResource('projects', ProjectController::class)->except(['index', 'show']);
 });

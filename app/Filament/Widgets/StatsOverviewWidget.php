@@ -4,17 +4,21 @@ namespace App\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use App\Models\Commande;
+use App\Models\Devis;
+use App\Models\Contact;
+use App\Models\QuoteRequest;
 use App\Models\Product;
-use App\Models\Pack;
-use App\Models\Service;
 use App\Models\User;
-use App\Models\Contact;   // ajuste selon ton modèle réel
+use App\Models\Project;
 use App\Models\Client;
+use App\Models\BlogPost;
 use Carbon\Carbon;
 
 class StatsOverviewWidget extends BaseWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 1;
+    protected int | string | array $columnSpan = 'full';
 
     protected function getStats(): array
     {
@@ -22,100 +26,93 @@ class StatsOverviewWidget extends BaseWidget
         $lastMonth = Carbon::now()->subMonth()->startOfMonth();
         $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
 
+        // ── Activité ──────────────────────────────────────────────────────────
+        $commandesMois     = Commande::where('created_at', '>=', $thisMonth)->count();
+        $commandesMoisDernier = Commande::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
+
+        $devisMois         = Devis::where('created_at', '>=', $thisMonth)->count();
+        $devisMoisDernier  = Devis::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
+
+        $contactsMois      = Contact::where('created_at', '>=', $thisMonth)->count();
+        $contactsMoisDernier = Contact::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
+
+        $quoteReqMois      = QuoteRequest::where('created_at', '>=', $thisMonth)->count();
+        $quoteReqMoisDernier = QuoteRequest::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
+
         return [
-            // ── Produits ─────────────────────────────────────────────────────
-            Stat::make('Produits', Product::count())
-                ->description($this->trend(Product::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->descriptionIcon($this->trendIcon(Product::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->color($this->trendColor(Product::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->icon('heroicon-o-cube')
-                ->chart($this->sparkline(Product::class)),
+            // ── Activité du mois ─────────────────────────────────────────────
+            Stat::make('Commandes ce mois', $commandesMois)
+                ->description($this->trend($commandesMois, $commandesMoisDernier))
+                ->descriptionIcon($this->trendIcon($commandesMois, $commandesMoisDernier))
+                ->color($commandesMois >= $commandesMoisDernier ? 'success' : 'danger')
+                ->chart($this->sparkline(Commande::class)),
 
-            // ── Packs ─────────────────────────────────────────────────────────
-            Stat::make('Packs', Pack::count())
-                ->description($this->trend(Pack::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->descriptionIcon($this->trendIcon(Pack::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->color($this->trendColor(Pack::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->icon('heroicon-o-archive-box')
-                ->chart($this->sparkline(Pack::class)),
+            Stat::make('Devis ce mois', $devisMois)
+                ->description($this->trend($devisMois, $devisMoisDernier))
+                ->descriptionIcon($this->trendIcon($devisMois, $devisMoisDernier))
+                ->color($devisMois >= $devisMoisDernier ? 'warning' : 'danger')
+                ->chart($this->sparkline(Devis::class)),
 
-            // ── Services ─────────────────────────────────────────────────────
-            Stat::make('Services', Service::count())
-                ->description($this->trend(Service::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->descriptionIcon($this->trendIcon(Service::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->color($this->trendColor(Service::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->icon('heroicon-o-wrench-screwdriver')
-                ->chart($this->sparkline(Service::class)),
+            Stat::make('Contacts ce mois', $contactsMois)
+                ->description($this->trend($contactsMois, $contactsMoisDernier))
+                ->descriptionIcon($this->trendIcon($contactsMois, $contactsMoisDernier))
+                ->color($contactsMois >= $contactsMoisDernier ? 'info' : 'danger')
+                ->chart($this->sparkline(Contact::class)),
 
-            // ── Utilisateurs ─────────────────────────────────────────────────
-            Stat::make('Utilisateurs', User::count())
-                ->description($this->trend(User::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->descriptionIcon($this->trendIcon(User::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->color($this->trendColor(User::class, $thisMonth, $lastMonth, $lastMonthEnd))
-                ->icon('heroicon-o-users')
-                ->chart($this->sparkline(User::class)),
+            Stat::make('Demandes de devis', $quoteReqMois)
+                ->description($this->trend($quoteReqMois, $quoteReqMoisDernier))
+                ->descriptionIcon($this->trendIcon($quoteReqMois, $quoteReqMoisDernier))
+                ->color($quoteReqMois >= $quoteReqMoisDernier ? 'primary' : 'danger')
+                ->chart($this->sparkline(QuoteRequest::class)),
 
-            // ── Clients ──────────────────────────────────────────────────────
-            Stat::make('Clients', Client::count())
+            // ── Catalogue & Portfolio ─────────────────────────────────────────
+            Stat::make('Projets réalisés', Project::count())
+                ->description(Project::where('is_active', true)->count() . ' publiés')
+                ->descriptionIcon('heroicon-m-briefcase')
+                ->color('success'),
+
+            Stat::make('Partenaires', Client::count())
                 ->description(Client::where('is_active', true)->count() . ' actifs')
-                ->descriptionIcon('heroicon-m-check-circle')
-                ->color('success')
-                ->icon('heroicon-o-building-office-2')
-                ->chart($this->sparkline(Client::class)),
+                ->descriptionIcon('heroicon-m-building-office-2')
+                ->color('info'),
 
-            // ── Messages non lus ─────────────────────────────────────────────
-            // Stat::make('Messages', Contact::where('is_read', false)->count())
-            //     ->description('Non lus')
-            //     ->descriptionIcon('heroicon-m-envelope')
-            //     ->color('warning')
-            //     ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+            Stat::make('Articles blog', BlogPost::count())
+                ->description('Contenu publié')
+                ->descriptionIcon('heroicon-m-document-text')
+                ->color('warning'),
+
+            Stat::make('Produits catalogue', Product::count())
+                ->description(User::count() . ' utilisateurs inscrits')
+                ->descriptionIcon('heroicon-m-tag')
+                ->color('gray'),
         ];
     }
 
-    // ── Sparkline : courbe 7 derniers jours ───────────────────────────────────
-    private function sparkline(string $model): array
+    private function trend(int $current, int $previous): string
     {
-        return collect(range(6, 0))
-            ->map(fn($d) => $model::whereDate('created_at', Carbon::now()->subDays($d))->count())
-            ->toArray();
-    }
-
-    // ── Tendance : nb créés ce mois vs mois dernier ───────────────────────────
-    private function countInPeriod(string $model, Carbon $start, Carbon $end): int
-    {
-        return $model::whereBetween('created_at', [$start, $end])->count();
-    }
-
-    private function trend(string $model, Carbon $thisMonth, Carbon $lastMonth, Carbon $lastMonthEnd): string
-    {
-        $current  = $this->countInPeriod($model, $thisMonth, Carbon::now());
-        $previous = $this->countInPeriod($model, $lastMonth, $lastMonthEnd);
-
-        if ($previous === 0) return $current > 0 ? "+{$current} ce mois" : 'Aucun ce mois';
-
+        if ($previous === 0) {
+            return $current > 0 ? '+' . $current . ' vs mois dernier' : 'Aucun le mois dernier';
+        }
         $diff = $current - $previous;
-        $pct  = round(abs($diff) / $previous * 100);
-
-        return $diff >= 0
-            ? "+{$pct}% vs mois dernier"
-            : "-{$pct}% vs mois dernier";
+        $sign = $diff >= 0 ? '+' : '';
+        return $sign . $diff . ' vs mois dernier';
     }
 
-    private function trendIcon(string $model, Carbon $thisMonth, Carbon $lastMonth, Carbon $lastMonthEnd): string
+    private function trendIcon(int $current, int $previous): string
     {
-        $current  = $this->countInPeriod($model, $thisMonth, Carbon::now());
-        $previous = $this->countInPeriod($model, $lastMonth, $lastMonthEnd);
-
         return $current >= $previous
             ? 'heroicon-m-arrow-trending-up'
             : 'heroicon-m-arrow-trending-down';
     }
 
-    private function trendColor(string $model, Carbon $thisMonth, Carbon $lastMonth, Carbon $lastMonthEnd): string
+    private function sparkline(string $model): array
     {
-        $current  = $this->countInPeriod($model, $thisMonth, Carbon::now());
-        $previous = $this->countInPeriod($model, $lastMonth, $lastMonthEnd);
-
-        return $current >= $previous ? 'success' : 'danger';
+        return collect(range(6, 0))
+            ->map(fn($i) => $model::whereYear('created_at', now()->subMonths($i)->year)
+                ->whereMonth('created_at', now()->subMonths($i)->month)
+                ->count()
+            )
+            ->values()
+            ->toArray();
     }
 }
