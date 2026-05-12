@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateBlogPost extends CreateRecord
 {
     protected static string $resource = BlogPostResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

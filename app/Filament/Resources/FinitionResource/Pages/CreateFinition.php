@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateFinition extends CreateRecord
 {
     protected static string $resource = FinitionResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
