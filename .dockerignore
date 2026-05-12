@@ -23,9 +23,4 @@ tests
 phpunit.xml
 .phpunit.result.cache
 
-docker/nginx
-docker/php
-docker/supervisor
-docker/entrypoint.sh
-
 dist
