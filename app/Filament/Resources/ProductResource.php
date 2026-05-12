@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
-use App\Models\Category;
 use App\Models\SubCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -21,35 +20,79 @@ class ProductResource extends Resource
     protected static ?string $navigationGroup = 'Catalogue';
     protected static ?int $navigationSort = 3;
 
-    
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('category_id')
-                    ->label('Catégorie')
-                    ->relationship('category', 'name')
-                    ->required()
-                    ->reactive()
-                    ->afterStateUpdated(fn ($state, callable $set) => $set('subcategory_id', null)),
+                Forms\Components\Section::make('Informations générales')
+                    ->schema([
+                        Forms\Components\Select::make('category_id')
+                            ->label('Catégorie')
+                            ->relationship('category', 'name')
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(fn ($set) => $set('subcategory_id', null)),
 
-                Forms\Components\Select::make('subcategory_id')
-                    ->label('Sous-catégorie')
-                    ->options(fn (callable $get) => SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id'))
-                    ->searchable(),
+                        Forms\Components\Select::make('subcategory_id')
+                            ->label('Sous-catégorie')
+                            ->options(fn (Forms\Get $get) => SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id'))
+                            ->searchable()
+                            ->nullable(),
 
-                Forms\Components\TextInput::make('title')->required()->maxLength(255),
-                Forms\Components\Textarea::make('description')->nullable()->rows(4),
-                Forms\Components\TextInput::make('price')->numeric()->nullable(),
-                Forms\Components\TextInput::make('link')->url()->nullable(),
-                Forms\Components\Textarea::make('highlights')->label('Points forts')->json(),
-                Forms\Components\Textarea::make('specs')->label('Spécifications')->json(),
+                        Forms\Components\TextInput::make('title')
+                            ->label('Titre')
+                            ->required()
+                            ->maxLength(255)
+                            ->afterStateHydrated(function ($component, $state) {
+                                if (is_array($state)) {
+                                    $component->state($state['fr'] ?? $state['en'] ?? '');
+                                }
+                            })
+                            ->dehydrateStateUsing(fn ($state) => ['fr' => $state, 'en' => $state]),
 
-                FileUpload::make('images')
-                    ->label('Images')
-                    ->multiple()
-                    ->image()
-                    ->directory('products'),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Description')
+                            ->nullable()
+                            ->rows(4)
+                            ->afterStateHydrated(function ($component, $state) {
+                                if (is_array($state)) {
+                                    $component->state($state['fr'] ?? $state['en'] ?? '');
+                                }
+                            })
+                            ->dehydrateStateUsing(fn ($state) => $state ? ['fr' => $state, 'en' => $state] : null),
+
+                        Forms\Components\TextInput::make('price')
+                            ->label('Prix (F CFA)')
+                            ->numeric()
+                            ->nullable(),
+
+                        Forms\Components\TextInput::make('link')
+                            ->label('Lien')
+                            ->url()
+                            ->nullable(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Image')
+                    ->schema([
+                        FileUpload::make('image')
+                            ->label('Image principale')
+                            ->image()
+                            ->directory('products')
+                            ->nullable(),
+                    ]),
+
+                Forms\Components\Section::make('Détails techniques')
+                    ->schema([
+                        Forms\Components\TagsInput::make('highlights')
+                            ->label('Points forts')
+                            ->placeholder('Ajouter un point fort...')
+                            ->nullable(),
+
+                        Forms\Components\TagsInput::make('specs')
+                            ->label('Spécifications')
+                            ->placeholder('Ajouter une spec...')
+                            ->nullable(),
+                    ]),
             ]);
     }
 
@@ -57,10 +100,29 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('category.name')->label('Catégorie')->sortable(),
-                Tables\Columns\TextColumn::make('subCategory.name')->label('Sous-catégorie')->sortable(),
-                Tables\Columns\TextColumn::make('price')->money('usd', true),
+                Tables\Columns\ImageColumn::make('image')
+                    ->label('Image')
+                    ->disk('public')
+                    ->circular(),
+
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Titre')
+                    ->formatStateUsing(fn ($state) => is_array($state) ? ($state['fr'] ?? '') : $state)
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Catégorie')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('subCategory.name')
+                    ->label('Sous-catégorie')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Prix')
+                    ->suffix(' F CFA')
+                    ->sortable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -74,9 +136,9 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProducts::route('/'),
+            'index'  => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
-            'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'edit'   => Pages\EditProduct::route('/{record}/edit'),
         ];
     }
 }
