@@ -23,52 +23,82 @@ class SubCategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('category_id')
-                    ->label('Catégorie')
-                    ->relationship('category', 'name')
-                    ->required(),
+                Forms\Components\Section::make('Informations générales')
+                    ->schema([
+                        Forms\Components\Select::make('category_id')
+                            ->label('Catégorie parente')
+                            ->relationship('category', 'name')
+                            ->required()
+                            ->disabled()
+                            ->dehydrated(),
 
-                Forms\Components\TextInput::make('name')
-                    ->label('Nom')
-                    ->required()
-                    ->maxLength(255),
+                        Forms\Components\TextInput::make('slug')
+                            ->label('Slug')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Identifiant unique utilisé par le frontend — ne pas modifier.')
+                            ->disabled()
+                            ->dehydrated(),
+                    ])->columns(2),
 
-                Forms\Components\TextInput::make('slug')
-                    ->label('Slug')
-                    ->required()
-                    ->unique(ignoreRecord: true),
+                Forms\Components\Section::make('Nom de la sous-catégorie')
+                    ->description('Traduisez le nom dans les deux langues')
+                    ->schema([
+                        Forms\Components\TextInput::make('name.fr')
+                            ->label('Nom (Français)')
+                            ->required()
+                            ->maxLength(255),
 
-                Forms\Components\Textarea::make('description')
-                    ->label('Description')
-                    ->rows(3)
-                    ->nullable(),
+                        Forms\Components\TextInput::make('name.en')
+                            ->label('Nom (Anglais)')
+                            ->required()
+                            ->maxLength(255),
+                    ])->columns(2),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->description('⚠️  Sous-catégories verrouillées — liées au frontend. Vous pouvez uniquement modifier les traductions. Aucune création ni suppression n\'est possible.')
             ->columns([
-                Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('slug')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('category.name')->label('Catégorie'),
+                Tables\Columns\TextColumn::make('slug')
+                    ->label('Slug')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('name.fr')
+                    ->label('Nom (FR)')
+                    ->sortable()
+                    ->searchable()
+                    ->weight('bold'),
+
+                Tables\Columns\TextColumn::make('name.en')
+                    ->label('Nom (EN)')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Catégorie')
+                    ->badge()
+                    ->color('primary'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
-            ])
-            ->defaultSort('id', 'desc');
+            ->bulkActions([])
+            ->defaultSort('category_id', 'asc');
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListSubCategories::route('/'),
-            'create' => Pages\CreateSubCategory::route('/create'),
-            'edit'   => Pages\EditSubCategory::route('/{record}/edit'),
+            'index' => Pages\ListSubCategories::route('/'),
+            'edit'  => Pages\EditSubCategory::route('/{record}/edit'),
         ];
     }
 }

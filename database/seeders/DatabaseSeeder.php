@@ -19,8 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             UserSeeder::class,
-            CategorySeeder::class,
-            SubCategorySeeder::class,
+            CategorySeeder::class, // insère aussi les sous-catégories
             ProductSeeder::class,
             PackSeeder::class,
             ServiceSeeder::class,

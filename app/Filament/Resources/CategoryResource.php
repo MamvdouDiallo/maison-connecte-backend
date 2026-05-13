@@ -29,7 +29,9 @@ class CategoryResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->alphaNum()
-                            ->helperText('Identifiant unique (ex: electronics, furniture)')
+                            ->helperText('Identifiant unique utilisé par le frontend — ne pas modifier.')
+                            ->disabled()
+                            ->dehydrated()
                             ->columnSpanFull(),
                     ]),
 
@@ -76,6 +78,7 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->description('⚠️  Catégories verrouillées — liées au frontend. Vous pouvez uniquement modifier les traductions et descriptions. Aucune création ni suppression n\'est possible.')
             ->columns([
                 Tables\Columns\TextColumn::make('slug')
                     ->label('Slug')
@@ -131,22 +134,16 @@ class CategoryResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
+            ->bulkActions([])
             ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListCategories::route('/'),
-            'create' => Pages\CreateCategory::route('/create'),
-            'edit'   => Pages\EditCategory::route('/{record}/edit'),
+            'index' => Pages\ListCategories::route('/'),
+            'edit'  => Pages\EditCategory::route('/{record}/edit'),
         ];
     }
 
