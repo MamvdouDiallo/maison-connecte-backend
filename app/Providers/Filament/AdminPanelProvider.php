@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->brandName('Maison Connectée')
             ->favicon(asset('favicon.ico'))
+            ->darkMode(false)
             ->colors([
                 'primary' => Color::hex('#0097A7'),
             ])
@@ -403,13 +404,22 @@ class AdminPanelProvider extends PanelProvider
                 border-radius: 8px !important;
                 border-color: #e2e8f0 !important;
                 font-size: 0.875rem !important;
+                background-color: #ffffff !important;
+                color: var(--mc-text) !important;
             }
             .fi-input:focus, .fi-select-input:focus, .fi-textarea:focus {
                 border-color: var(--mc-primary) !important;
                 box-shadow: 0 0 0 3px rgba(0,151,167,0.12) !important;
             }
+            /* Champ désactivé */
+            .fi-input[disabled], .fi-select-input[disabled], .fi-textarea[disabled],
+            [disabled] .fi-input, [disabled] .fi-select-input {
+                background-color: #f8fafc !important;
+                color: #94a3b8 !important;
+                cursor: not-allowed !important;
+            }
             /* Labels */
-            .fi-fo-field-wrp-label {
+            .fi-fo-field-wrp-label, label {
                 color: var(--mc-text) !important;
                 font-weight: 600 !important;
                 font-size: 0.82rem !important;
@@ -418,6 +428,29 @@ class AdminPanelProvider extends PanelProvider
             .fi-fo-field-wrp-hint { color: #94a3b8 !important; font-size: 0.75rem !important; }
             /* Error */
             .fi-fo-field-wrp-error-message { color: #ef4444 !important; font-size: 0.75rem !important; }
+            /* Select — options dropdown */
+            .choices__list--dropdown, .choices__list[aria-expanded] {
+                background-color: #ffffff !important;
+                border-color: #e2e8f0 !important;
+                border-radius: 8px !important;
+            }
+            .choices__item, .choices__item--choice {
+                color: var(--mc-text) !important;
+                background-color: transparent !important;
+            }
+            .choices__item--selectable.is-highlighted {
+                background-color: rgba(0,151,167,0.08) !important;
+                color: var(--mc-primary) !important;
+            }
+            /* Listbox / combobox natif Filament */
+            [role="listbox"], [role="option"] {
+                background-color: #ffffff !important;
+                color: var(--mc-text) !important;
+            }
+            [role="option"]:hover, [role="option"][aria-selected="true"] {
+                background-color: rgba(0,151,167,0.08) !important;
+                color: var(--mc-primary) !important;
+            }
             /* Toggle / switch ON */
             .fi-fo-toggle-input:checked {
                 background-color: var(--mc-primary) !important;
@@ -557,15 +590,19 @@ class AdminPanelProvider extends PanelProvider
                NOTIFICATIONS
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
             .fi-notification {
+                background-color: #ffffff !important;
                 border-radius: 12px !important;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
-                border: none !important;
+                border: 1px solid rgba(0,0,0,0.06) !important;
             }
             .fi-notification-icon.fi-color-success { color: #10b981 !important; }
             .fi-notification-icon.fi-color-danger  { color: #ef4444 !important; }
+            .fi-notification-icon.fi-color-info    { color: var(--mc-primary) !important; }
             .fi-notification-icon.fi-color-primary { color: var(--mc-primary) !important; }
             .fi-notification-title { font-weight: 700 !important; color: var(--mc-text) !important; }
             .fi-notification-body  { font-size: 0.8rem !important; color: #64748b !important; }
+            /* Description de table (message info verrouillage) */
+            .fi-ta-description { color: #64748b !important; font-size: 0.82rem !important; }
 
             /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                BADGES & INDICATEURS
