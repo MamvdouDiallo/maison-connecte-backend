@@ -28,14 +28,20 @@ class ProductResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('category_id')
                             ->label('Catégorie')
-                            ->relationship('category', 'name')
+                            ->options(fn () => \App\Models\Category::all()->mapWithKeys(
+                                fn ($cat) => [$cat->id => $cat->name['fr'] ?? $cat->slug]
+                            ))
+                            ->searchable()
                             ->required()
                             ->live()
                             ->afterStateUpdated(fn ($set) => $set('subcategory_id', null)),
 
                         Forms\Components\Select::make('subcategory_id')
                             ->label('Sous-catégorie')
-                            ->options(fn (Forms\Get $get) => SubCategory::where('category_id', $get('category_id'))->pluck('name', 'id'))
+                            ->options(fn (Forms\Get $get) => SubCategory::where('category_id', $get('category_id'))
+                                ->get()
+                                ->mapWithKeys(fn ($sub) => [$sub->id => $sub->name['fr'] ?? $sub->slug])
+                            )
                             ->searchable()
                             ->nullable(),
 
