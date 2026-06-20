@@ -16,7 +16,7 @@ class AccessoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'       => 'required',
+            'title'       => 'nullable',
             'description' => 'nullable',
             'price'       => 'nullable|numeric',
             'image'       => 'nullable|file|image|max:2048',
@@ -38,7 +38,7 @@ class AccessoryController extends Controller
     public function update(Request $request, Accessory $accessory)
     {
         $data = $request->validate([
-            'title'       => 'required',
+            'title'       => 'nullable',
             'description' => 'nullable',
             'price'       => 'nullable|numeric',
             'image'       => 'nullable|file|image|max:2048',

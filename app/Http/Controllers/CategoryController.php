@@ -9,7 +9,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        return Category::with('subCategories')->get();
+        return Category::with('subCategories')->orderBy('order')->get();
     }
 
     public function show(Category $category)
@@ -20,8 +20,8 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:categories',
+            'name'        => 'nullable',
+            'slug'        => 'nullable|unique:categories',
             'description' => 'nullable',
         ]);
 
@@ -31,8 +31,8 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $data = $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:categories,slug,' . $category->id,
+            'name'        => 'nullable',
+            'slug'        => 'nullable|unique:categories,slug,' . $category->id,
             'description' => 'nullable',
         ]);
 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SupportTicket;
+use Illuminate\Http\Request;
 
 class SupportTicketController extends Controller
 {
@@ -13,9 +15,9 @@ class SupportTicketController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'subject' => 'required',
-            'message' => 'required',
+            'user_id' => 'nullable|exists:users,id',
+            'subject' => 'nullable',
+            'message' => 'nullable',
             'status'  => 'string',
             'files'   => 'array',
         ]);

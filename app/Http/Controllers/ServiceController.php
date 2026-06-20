@@ -16,8 +16,8 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required',
-            'description' => 'required',
+            'name'        => 'nullable',
+            'description' => 'nullable',
             'price'       => 'nullable|numeric',
             'available_online' => 'boolean',
             'image' => 'nullable|image|max:2048' // 2MB max
@@ -40,8 +40,8 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service)
     {
         $data = $request->validate([
-            'name'        => 'required',
-            'description' => 'required',
+            'name'        => 'nullable',
+            'description' => 'nullable',
             'price'       => 'nullable|numeric',
             'available_online' => 'boolean',
             'image' => 'nullable|image|max:2048'

@@ -19,6 +19,7 @@ class CategorySeeder extends Seeder
         DB::table('categories')->insert([
             [
                 'slug'        => 'securite',
+                'order'       => 1,
                 'name'        => json_encode(['fr' => 'Sécurité Électronique', 'en' => 'Electronic Security']),
                 'description' => null,
                 'created_at'  => $now,
@@ -26,6 +27,7 @@ class CategorySeeder extends Seeder
             ],
             [
                 'slug'        => 'smart-home',
+                'order'       => 2,
                 'name'        => json_encode(['fr' => 'Domotique', 'en' => 'Smart Home']),
                 'description' => null,
                 'created_at'  => $now,
@@ -33,6 +35,7 @@ class CategorySeeder extends Seeder
             ],
             [
                 'slug'        => 'energie',
+                'order'       => 3,
                 'name'        => json_encode(['fr' => 'Énergie Solaire', 'en' => 'Solar Energy']),
                 'description' => null,
                 'created_at'  => $now,
@@ -40,6 +43,7 @@ class CategorySeeder extends Seeder
             ],
             [
                 'slug'        => 'finitions',
+                'order'       => 4,
                 'name'        => json_encode(['fr' => 'Finitions Premium', 'en' => 'Premium Finishes']),
                 'description' => null,
                 'created_at'  => $now,

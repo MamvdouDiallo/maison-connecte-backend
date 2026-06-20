@@ -26,19 +26,21 @@ class FinitionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'titre'            => 'required|array',
-            'titre.fr'         => 'required|string',
+            'titre'            => 'nullable|array',
+            'titre.fr'         => 'nullable|string',
             'titre.en'         => 'nullable|string',
-            'description'      => 'required|array',
-            'description.fr'   => 'required|string',
+            'description'      => 'nullable|array',
+            'description.fr'   => 'nullable|string',
             'description.en'   => 'nullable|string',
-            'photo'            => 'required|image|max:4096',
+            'photo'            => 'nullable|image|max:4096',
             'galerie.*'        => 'nullable|image|max:4096',
-            'categorie'        => 'required|in:peinture,carrelage,menuiserie,design,plafonds',
+            'categorie'        => 'nullable|in:peinture,carrelage,menuiserie,design,plafonds',
             'ordre'            => 'integer',
         ]);
 
-        $photoPath = $request->file('photo')->store('finitions', 'public');
+        $photoPath = $request->hasFile('photo')
+            ? $request->file('photo')->store('finitions', 'public')
+            : null;
 
         $galeriePaths = [];
         if ($request->hasFile('galerie')) {

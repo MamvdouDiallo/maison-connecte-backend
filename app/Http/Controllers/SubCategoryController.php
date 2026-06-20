@@ -20,9 +20,9 @@ class SubCategoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name'        => 'required',
-            'slug'        => 'required|unique:sub_categories',
+            'category_id' => 'nullable|exists:categories,id',
+            'name'        => 'nullable',
+            'slug'        => 'nullable|unique:sub_categories',
             'description' => 'nullable',
         ]);
 
@@ -32,9 +32,9 @@ class SubCategoryController extends Controller
     public function update(Request $request, SubCategory $subCategory)
     {
         $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name'        => 'required',
-            'slug'        => 'required|unique:sub_categories,slug,' . $subCategory->id,
+            'category_id' => 'nullable|exists:categories,id',
+            'name'        => 'nullable',
+            'slug'        => 'nullable|unique:sub_categories,slug,' . $subCategory->id,
             'description' => 'nullable',
         ]);
 

@@ -20,9 +20,9 @@ class PackController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required',
+            'name'        => 'nullable',
             'description' => 'nullable',
-            'price'       => 'required|numeric',
+            'price'       => 'nullable|numeric',
             'installation_included' => 'boolean',
             'products'    => 'array',
         ]);
@@ -39,9 +39,9 @@ class PackController extends Controller
     public function update(Request $request, Pack $pack)
     {
         $data = $request->validate([
-            'name'        => 'required',
+            'name'        => 'nullable',
             'description' => 'nullable',
-            'price'       => 'required|numeric',
+            'price'       => 'nullable|numeric',
             'installation_included' => 'boolean',
             'products'    => 'array',
         ]);

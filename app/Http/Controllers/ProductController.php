@@ -22,17 +22,22 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id'    => 'required|exists:categories,id',
             'subcategory_id' => 'nullable|exists:sub_categories,id',
-            'title' => 'required',
-            'description' => 'nullable',
-            'price' => 'nullable|numeric',
-            'image' => 'nullable|string',
-            'link' => 'nullable|string',
-            'highlights' => 'nullable|array',
-            'specs' => 'nullable|array',
-            'images.*' => 'nullable|image|max:2048',
+            'title'          => 'required',
+            'description'    => 'nullable',
+            'price'          => 'nullable|numeric',
+            'image'          => 'nullable',
+            'link'           => 'nullable|string',
+            'highlights'     => 'nullable|array',
+            'specs'          => 'nullable|array',
+            'images.*'       => 'nullable|image|max:2048',
         ]);
+
+        // Upload image principale si c'est un fichier
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
 
         $product = Product::create($data);
 
@@ -52,26 +57,30 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id'    => 'sometimes|exists:categories,id',
             'subcategory_id' => 'nullable|exists:sub_categories,id',
-            'title' => 'required',
-            'description' => 'nullable',
-            'price' => 'nullable|numeric',
-            'image' => 'nullable|string',
-            'link' => 'nullable|string',
-            'highlights' => 'nullable|array',
-            'specs' => 'nullable|array',
-            'images.*' => 'nullable|image|max:2048',
+            'title'          => 'sometimes',
+            'description'    => 'nullable',
+            'price'          => 'nullable|numeric',
+            'image'          => 'nullable',
+            'link'           => 'nullable|string',
+            'highlights'     => 'nullable|array',
+            'specs'          => 'nullable|array',
+            'images.*'       => 'nullable|image|max:2048',
         ]);
+
+        // Upload image principale si c'est un fichier
+        if ($request->hasFile('image')) {
+            if ($product->image && !str_starts_with($product->image, 'http')) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
 
         $product->update($data);
 
+        // Ajoute les nouvelles images sans supprimer les existantes
         if ($request->hasFile('images')) {
-            foreach ($product->images as $img) {
-                Storage::disk('public')->delete($img->path);
-                $img->delete();
-            }
-
             foreach ($request->file('images') as $img) {
                 $path = $img->store('products', 'public');
                 ProductImage::create([

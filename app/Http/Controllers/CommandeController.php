@@ -44,12 +44,19 @@ class CommandeController extends Controller
 
         $commande->load('items');
 
-        $adminAddress = config('mail.admin_address');
-        if ($adminAddress) {
-            Mail::to($adminAddress)->send(new CommandeAdminNotification($commande));
-        }
+        try {
+            $adminAddress = config('mail.admin_address');
+            if ($adminAddress) {
+                Mail::to($adminAddress)->send(new CommandeAdminNotification($commande));
+            }
 
-        Mail::to($commande->email)->send(new CommandeClientConfirmation($commande));
+            Mail::to($commande->email)->send(new CommandeClientConfirmation($commande));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Mail commande échoué', [
+                'commande_id' => $commande->id,
+                'error'       => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,

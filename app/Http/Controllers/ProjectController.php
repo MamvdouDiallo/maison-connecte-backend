@@ -29,9 +29,9 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'project_type_id'  => 'required|exists:project_types,id',
-            'title'            => 'required|array',
-            'title.fr'         => 'required|string',
+            'project_type_id'  => 'nullable|exists:project_types,id',
+            'title'            => 'nullable|array',
+            'title.fr'         => 'nullable|string',
             'title.en'         => 'nullable|string',
             'description'      => 'nullable|array',
             'location'         => 'nullable|string',

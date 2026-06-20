@@ -14,6 +14,7 @@ class Category extends Model
         'slug',
         'name',
         'description',
+        'order',
     ];
 
     protected $casts = [

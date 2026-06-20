@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Quote;
+use Illuminate\Http\Request;
+
 class QuoteController extends Controller
 {
     public function index()
@@ -12,13 +15,13 @@ class QuoteController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'user_id'    => 'required|exists:users,id',
-            'service_id' => 'required|exists:services,id',
-            'customer_name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'nullable',
+            'user_id'        => 'nullable|exists:users,id',
+            'service_id'     => 'nullable|exists:services,id',
+            'customer_name'  => 'nullable',
+            'email'          => 'nullable|email',
+            'phone'          => 'nullable',
             'custom_request' => 'nullable',
-            'status' => 'string',
+            'status'         => 'string',
         ]);
 
         return Quote::create($data);
