@@ -23,7 +23,8 @@ use App\Http\Controllers\{
     FinitionController,
     ClientController,
     ProjectTypeController,
-    ProjectController
+    ProjectController,
+    SettingController
 };
 
 
@@ -36,6 +37,9 @@ use App\Http\Controllers\{
 */
 
 Route::prefix('public')->group(function () {
+
+    /* ----------- Settings ----------- */
+    Route::get('/settings', [SettingController::class, 'index']);
 
     /* ----------- Categories ----------- */
     Route::get('/categories', [CategoryController::class, 'index']);
