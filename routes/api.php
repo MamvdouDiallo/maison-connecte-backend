@@ -24,7 +24,8 @@ use App\Http\Controllers\{
     ClientController,
     ProjectTypeController,
     ProjectController,
-    SettingController
+    SettingController,
+    SiteVisitController
 };
 
 
@@ -40,6 +41,9 @@ Route::prefix('public')->group(function () {
 
     /* ----------- Settings ----------- */
     Route::get('/settings', [SettingController::class, 'index']);
+
+    /* ----------- Site visits ----------- */
+    Route::post('/site-visits', [SiteVisitController::class, 'store']);
 
     /* ----------- Categories ----------- */
     Route::get('/categories', [CategoryController::class, 'index']);
